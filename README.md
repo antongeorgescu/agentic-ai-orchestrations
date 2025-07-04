@@ -132,6 +132,8 @@ flowchart TD
 
 ## 2. Threat Model for Multi-Agent Embedded Orchestration
 
+The following threat model has been generated from `agentic_embed_orch.py` Python script, by using Github Copilot.
+
 ### 2.1 **Architecture Overview**
 - The system orchestrates multiple AI agents (SupportAgent, TriageAgent, TravelWorkflowAgent, SportAgent) using Azure OpenAI services.
 - User queries are routed through a handoff orchestration, with some agents (like TravelWorkflowAgent) running their own internal sequential orchestration (TravelAgent, SummarizerAgent, WeatherAgent).
