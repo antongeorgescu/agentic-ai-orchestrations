@@ -6,7 +6,7 @@ There are 3 Python scripts that represent 3 different implementations of multi-a
 
 ## 1. Agentic with Embedded Orchestrations
 
-The script *agentic_embed_orch.py* implements a multi-agent system using the Semantic Kernel library, specifically focusing on orchestration patterns: **Sequential Orchestration** and **Handoff Orchestration**. Here's an architecture-like analysis:
+The script <span style="color:orange">agentic_embed_orch.py</span> implements a multi-agent system using the Semantic Kernel library, specifically focusing on orchestration patterns: **Sequential Orchestration** and **Handoff Orchestration**. Here's an architecture-like analysis:
 
 ---
 
@@ -127,3 +127,54 @@ flowchart TD
 - `TriageAgent` classifies user intent and routes to the appropriate agent or back to `SupportAgent` for unsupported queries.
 - `TravelWorkflowAgent` is a *Semantic Kernel sequential orchestration* that internally runs three agents: `TravelAgent`, `SummarizerAgent`, and `WeatherAgent`.
 - Both `TravelWorkflowAgent` and `SportAgent` can hand off to `SupportAgent` if the query is outside their domain.
+
+```mermaid
+flowchart TD
+    User[User]
+    UI[User Interface / API Endpoint]
+    Orchestration[HandoffOrchestration]
+    SupportAgent[SupportAgent]
+    TriageAgent[TriageAgent]
+    TravelWorkflowAgent[TravelWorkflowAgent]
+    SportAgent[SportAgent]
+    AzureOpenAI[Azure OpenAI Service]
+    Secrets[Environment Variables / Secrets Store]
+
+    subgraph TravelWorkflow
+        TravelAgent[TravelAgent]
+        SummarizerAgent[SummarizerAgent]
+        WeatherAgent[WeatherAgent]
+    end
+
+    User -- Input (T1: Input Injection, T3: DoS) --> UI
+    UI -- Query --> Orchestration
+    Orchestration -- Route --> SupportAgent
+    Orchestration -- Route --> TriageAgent
+    Orchestration -- Route --> TravelWorkflowAgent
+    Orchestration -- Route --> SportAgent
+
+    TravelWorkflowAgent -- Sequential --> TravelAgent
+    TravelWorkflowAgent -- Sequential --> SummarizerAgent
+    TravelWorkflowAgent -- Sequential --> WeatherAgent
+
+    SupportAgent -- API Call (T2: Data Leakage) --> AzureOpenAI
+    TriageAgent -- API Call (T2: Data Leakage) --> AzureOpenAI
+    TravelAgent -- API Call (T2: Data Leakage) --> AzureOpenAI
+    SummarizerAgent -- API Call (T2: Data Leakage) --> AzureOpenAI
+    WeatherAgent -- API Call (T2: Data Leakage) --> AzureOpenAI
+    SportAgent -- API Call (T2: Data Leakage) --> AzureOpenAI
+
+    Orchestration -- Reads (T4: Credential Exposure) --> Secrets
+
+    AzureOpenAI -- Response --> Orchestration
+    Orchestration -- Output (T5: Logging Sensitive Data) --> UI
+    UI -- Output --> User
+
+    %% Threats
+    
+    T1[Input Injection]:::threat
+    T2[Data Leakage]:::threat
+    T3[Denial of Service]:::threat
+    T4[Credential Exposure]:::threat
+    T5[Logging Sensitive Data]:::threat
+```

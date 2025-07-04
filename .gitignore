@@ -67,3 +67,4 @@ dmypy.json
 
 # Ignore specific directories
 utilities/
+unit_tests/
