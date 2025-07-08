@@ -8,12 +8,22 @@
 
 ## 🧠 Core Technologies
 
+- **Agentic AI**: Agentic AI refers to systems composed of autonomous, specialized agents that can reason, plan, and collaborate to solve complex tasks. In Alvianda Travel, Agentic AI enables modular, orchestrated workflows where each agent is responsible for a specific domain (e.g., travel, sports, entertainment, flight search). This approach allows for flexible, scalable, and maintainable solutions that can be easily extended with new capabilities or integrated with external services.
+
 - **Semantic Kernel (SK)**: Used to define and orchestrate agent behaviors using three orchestration patterns:
   - **Sequential Orchestration**
   - **Hand-off Orchestration**
   - **Group Chat Orchestration**
 - **Azure OpenAI**: Powers the LLMs behind each agent, with prompt-engineered instructions to constrain their domain knowledge.
 - **Google Flights Search (GFS)**: Accessed via plugin integration for real-time flight data.
+
+---
+
+## 👥 Business Process and Actors
+
+> **Note:** The business process for Alvianda Travel can also be represented using BPMN (Business Process Model and Notation), a standard for modeling business workflows. BPMN diagrams provide a clear, visual way to describe the sequence of activities, decision points, and interactions between users and agents in the system. This approach helps both technical and business stakeholders understand and optimize the end-to-end travel planning process.
+
+<img width="838" height="791" alt="Image" src="https://github.com/user-attachments/assets/5f31b177-1724-47e9-bcd0-ed122b73f0dd" />
 
 ---
 
