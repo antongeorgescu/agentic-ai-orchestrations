@@ -37,30 +37,42 @@ def get_sequential_agents(kernel: Kernel,service):
     # Create the Travel Agent
     travel_agent = ChatCompletionAgent(
         kernel=kernel,
-        name="TravelAgent",
+        name="TravelSpecialist",
         instructions="You are a travel assistant. Use your general knowledge to provide travel advice, destination information, and answer travel-related questions for the user.",
+    )
+    
+    # Create the Weather Agent
+    weather_agent = ChatCompletionAgent(
+        kernel=kernel, # No plugins needed, it relies on instructions
+        service=service,
+        name="WeatherSpecialist",
+        instructions=(
+            "You are a weather expert. Provide the current weather for the destination, if available. "
+            "Current and season average temperatures should be in both Celsius and Fahrenheit, and weather advisories should be included."
+        )
+    )
+
+    # Create the Enetrtainment Agent
+    entertainment_agent = ChatCompletionAgent(
+        kernel=kernel, # No plugins needed, it relies on instructions
+        service=service,
+        name="EntertainmentSpecialist",
+        instructions=(
+            "You are an expert in entertainment related activities and events."
+            "Mention the most popular events, festivals, and cultural activities that a tourist should not miss, all related to the travel destination."
+        )
     )
 
     # Create the Summarizer Agent
     summarizer_agent = ChatCompletionAgent(
         kernel=kernel, # No plugins needed, it relies on instructions
         service=service,
-        name="SummarizerAgent",
+        name="SynopsisSpecialist",
         instructions="You are a summarization expert. Take the provided text and create a concise, one-sentence summary.",
     )
 
-    # Create the Weather Agent
-    weather_agent = ChatCompletionAgent(
-        kernel=kernel, # No plugins needed, it relies on instructions
-        service=service,
-        name="WeatherAgent",
-        instructions=(
-            "You are a weather expert. Provide the current weather for the destination, if available. "
-            "Current and season average temperatures should be in both Celsius and Fahrenheit, and weather advisories should be included."
-        )
-    )
     
-    return [travel_agent, summarizer_agent, weather_agent]
+    return [travel_agent, weather_agent,entertainment_agent, summarizer_agent]
 
 def get_handoff_agents(service):
     # --- Agent Creation ---
@@ -85,11 +97,13 @@ def get_handoff_agents(service):
     triage_kernel.add_service(service)
     triage_agent = ChatCompletionAgent(
         kernel=triage_kernel, # No plugins needed for this simple router
-        name="TriageAgent",
+        name="TripAdvisor",
         instructions=(
             "You are a request router. Analyze the user's query and extract his intent: "
             " - if user query is about travel information, destination, tips and budgets, transfer the user query to travel_workflow_agent. "
+            " = do not transfer to travel_workflow_agent if the user query is about flights, as this is handled by flight_agent. "
             " - if user query is about sport topics, events, trivia, transfer the user query to sport_agent. "
+            " - if user query is about flights to the travel destination, transfer the user query to flight_agent. "
             "For any other intent, transfer the user query to support_agent with a polite message explaining that you cannot handle the request."
         ),
         service=service
@@ -100,7 +114,7 @@ def get_handoff_agents(service):
     travel_workflow_kernel.add_service(service)
     travel_workflow_agent = TravelWorkflowAgent(
         kernel=travel_workflow_kernel,
-        name="TravelWorkflowAgent",
+        name="TravelInfoCoordinator",
         instructions=(
             "You are a travel assistant. Use your general knowledge to provide travel advice, destination information, and answer travel-related questions for the user."
             "You will also provide a summary of your findings."
@@ -116,11 +130,25 @@ def get_handoff_agents(service):
     sport_kernel.add_service(service)
     sport_agent = ChatCompletionAgent(
         kernel=sport_kernel,
-        name="SportAgent",
+        name="SportSpecialist",
         instructions=(
             "You are a sports expert. Your job is to provide information, facts, and answer questions about sports to the user."
             "Do not provide any information unless it is strictly related to sports topics, events, or trivia."
             "If the user query is not related to sports, route the query to support_agent."
+        ),
+        service=service
+    )
+
+    # Create the Flight Agent
+    flight_kernel = Kernel()
+    flight_kernel.add_service(service)
+    flight_agent = ChatCompletionAgent(
+        kernel=flight_kernel,
+        name="FlightSpecialist",
+        instructions=(
+            "You are a flights expert. Your job is to provide full details about flights available to the travel destination."
+            "Do not provide any flights information that is not related to the travel destination."
+            "If the user query is not related to flights, route the query to support_agent."
         ),
         service=service
     )
@@ -151,9 +179,14 @@ def get_handoff_agents(service):
             target_agent=support_agent.name,
             description="Transfer to this agent if the user query is not related to sports assistance",
         )
+        .add(
+            source_agent=flight_agent.name,
+            target_agent=support_agent.name,
+            description="Transfer to this agent if the user query is not related to flights assistance",
+        )
     )
 
-    return [support_agent, triage_agent, travel_workflow_agent, sport_agent], handoffs
+    return [support_agent, triage_agent, travel_workflow_agent, sport_agent, flight_agent], handoffs
 
 def agent_response_callback(message: ChatMessageContent) -> None:
     """Observer function to print the messages from the agents.

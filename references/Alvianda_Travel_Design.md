@@ -23,7 +23,7 @@
 
 > **Note:** The business process for Alvianda Travel can also be represented using BPMN (Business Process Model and Notation), a standard for modeling business workflows. BPMN diagrams provide a clear, visual way to describe the sequence of activities, decision points, and interactions between users and agents in the system. This approach helps both technical and business stakeholders understand and optimize the end-to-end travel planning process.
 
-<img width="838" height="791" alt="Image" src="https://github.com/user-attachments/assets/5f31b177-1724-47e9-bcd0-ed122b73f0dd" />
+<img width="1269" height="737" alt="Image" src="https://github.com/user-attachments/assets/752fb115-9b2c-4e03-a5e1-40e962447392" />
 
 ---
 
@@ -61,9 +61,10 @@
 - **Role**: Orchestrator for destination-related information.
 - **Function**: Executes Sequential Orchestration of domain-specific agents:
   1. TravelSpecialist
-  2. SportSpecialist
-  3. EntertainmentSpecialist
-  4. TripSynopsisSpecialist
+  2. WeatherSpecialist
+  3. SportSpecialist
+  4. EntertainmentSpecialist
+  5. TripSynopsisSpecialist
 - **Prompt Template**: "You are a travel orchestrator. Call each agent in sequence and compile their outputs."
 
 ---
