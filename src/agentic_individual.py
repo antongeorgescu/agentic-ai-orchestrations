@@ -55,6 +55,7 @@ def get_agents():
             "You are a request router. Analyze the user's query and extract his intent: "
             " - if user query is about travel information, destination, tips and budgets, respond with the single word 'TRAVEL'. "
             " - if user query is about sport topics, events, trivia, respond with the single word 'SPORT'. "
+            " - if user query is about flights and flight booking, respond with the single word 'FLIGHT'. "
         ),
     )
 
@@ -83,7 +84,21 @@ def get_agents():
         name="SportAgent",
         instructions="You are a sports expert. Your job is to provide information, facts, and answer questions about sports to the user.",
     )
-    return welcome_kernel, triage_agent, travel_agent, summarizer_agent, sport_agent
+
+    # 6. Create the Flight Agent
+    flight_agent = ChatCompletionAgent(
+        kernel=Kernel(),
+        service=azure_chat_service,
+        name="FlightSpecialist",
+        instructions=(
+            "You are a flights expert. Your job is to provide full details about flights available to the travel destination."
+            "If user did not provide the departure location, ask for it. "
+            "Only respond to queries specifically about flights or flight booking. "
+            "If the user asks about travel or sport topics, politely redirect them to the appropriate agent."
+            "If the user asks about flights, you can also provide a summary of the flight details"
+        ),
+    )  
+    return welcome_kernel, triage_agent, travel_agent, summarizer_agent, sport_agent, flight_agent
 
 async def main():
     """
@@ -110,6 +125,10 @@ async def main():
             "SPORT": {
                 "agents": [sport_agent],
                 "description": "Provide sports information or answer sports-related questions."
+            },
+             "FLIGHT": {
+                "agents": [flight_agent],
+                "description": "Provide flight and flight booking information or answer flight-related questions."
             }
             # Add more intent-agent mappings here as needed
         }
@@ -158,8 +177,8 @@ async def get_welcome_message(instruction: str = None):
 
 if __name__ == "__main__":
     # Get the agents
-    welcome_kernel,triage_agent, travel_agent, summarizer_agent, sport_agent = get_agents()
-    if not all([triage_agent, travel_agent, summarizer_agent, sport_agent]):
+    welcome_kernel,triage_agent, travel_agent, summarizer_agent, sport_agent, flight_agent = get_agents()
+    if not all([triage_agent, travel_agent, summarizer_agent, sport_agent, flight_agent]):
         print("--- Error: One or more agents could not be created.")
         import sys
         sys.exit(1)

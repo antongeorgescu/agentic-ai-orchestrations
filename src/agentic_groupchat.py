@@ -80,17 +80,18 @@ def human_response_function() -> ChatMessageContent:
     return ChatMessageContent(role=AuthorRole.USER, content=user_input)
 
 async def run_groupchat_orchestration(service):
-    """Function to run a GroupChat orchestration with SupportAgent and FlightAgent."""
+    """Function to run a GroupChat orchestration with WeatherSpecialist, SportSpecialist and FlightSpecialist."""
     # Get the group chat agents
     weather_agent, sport_agent, flight_agent = get_groupchat_agents(service)
     
+    # Create the group chat orchestration
     group_chat_orchestration = GroupChatOrchestration(
         members=[weather_agent, sport_agent, flight_agent],
         manager=RoundRobinGroupChatManager(max_rounds=5),  # Odd number so writer gets the last word
         agent_response_callback=agent_response_callback,
     )
 
-    # # Create the group chat orchestration
+    
     # groupchat = AgentGroupChat(
     #     members=[weather_agent, flight_agent, sport_agent],
     #     agent_response_callback=agent_response_callback,
@@ -107,7 +108,7 @@ async def run_groupchat_orchestration(service):
 
     # Example task for the group chat
     orchestration_result = await group_chat_orchestration.invoke(
-        task="A user wants to book a flight and needs support with the booking process.",
+        task="A user wants travel to a destination, get the weather report, watch a few soccer games, and get information about available flights.",
         runtime=runtime,
     )
 
@@ -144,11 +145,8 @@ if __name__ == "__main__":
 Sample Queries for Testing the Agents
 These queries can be used to test the agents in the orchestration.
 
-I am working at a historical essay about big social movements, and I need to know who was the French king killed during 1789 French Revolution.
-I'd like to know which national team won the highest number of World Cups and when.
-What is fusion and how can be used for producing cheap energy?
-I would like to travel to Romania in December 2025. What kind of objectives I can see?
-I would like to know which team has scored the highest number of goals ever in English Premier League (EPL) and during which season.
-Is it safe to visit Kenia on your own as a North-American tourist?
+I'd like to travel to Romania in summer and watch some soccer games. Can you help me with that?
+I need to know the typical weather in Bucharest during the month of July.
+I want to book a flight from Toronto to Bucharest end of July or beginning of August. Can you assist me with that?
 """
 # End of file
