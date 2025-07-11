@@ -1,250 +1,177 @@
-# Multi-Agentic AI Agents with Microsoft Semantic Kernel
+# Alvianda Travel – Agentic AI Architecture
 
-There are 3 Python scripts that represent 3 different implementations of multi-agents powere by an Agentic AI Framework (Semantic Kernel) Each script represents an evolution in the agentic-based design. The script on top is the most evolved.
+## 🧭 Overview
 
----
-
-## 1. Agentic with Embedded Orchestrations
-
-The script <span style="color:orange">agentic_embed_orch.py</span> implements a multi-agent system using the Semantic Kernel library, specifically focusing on orchestration patterns: **Sequential Orchestration** and **Handoff Orchestration**. Here's an architecture-like analysis:
+**Alvianda Travel** is a virtual travel assistant platform that leverages **Semantic Kernel (SK)** and **Azure OpenAI** to deliver intelligent, modular, and orchestrated travel planning experiences. The system is composed of **six specialized AI agents**, each with a defined role, communication pattern, and orchestration strategy. These agents collaborate to fulfill user travel inquiries, from destination insights to flight booking options.
 
 ---
 
-### 1.1 Core Components
+## 🧠 Core Technologies
 
-#### 1.1.1 Agents (`ChatCompletionAgent`)
+- **Agentic AI**: Agentic AI refers to systems composed of autonomous, specialized agents that can reason, plan, and collaborate to solve complex tasks. In Alvianda Travel, Agentic AI enables modular, orchestrated workflows where each agent is responsible for a specific domain (e.g., travel, sports, entertainment, flight search). This approach allows for flexible, scalable, and maintainable solutions that can be easily extended with new capabilities or integrated with external services.
 
-These are the fundamental building blocks. Each agent is an instance of `ChatCompletionAgent`, which utilizes a language model (Azure OpenAI in this case) to process instructions and generate responses. Agents are given a name and instructions that define their role and behavior.
-
-#### 1.1.2 Kernel
-
-Each agent is associated with a `Kernel` instance. The kernel is responsible for managing services (like the AI service) and potentially skills/plugins (though not explicitly used for skills in this example).
-
-#### 1.1.3 Services (`AzureChatCompletion`)
-
-This represents the connection to the underlying AI model (Azure OpenAI). Agents use a service to send prompts and receive completions.
-
-#### 1.1.4 Runtime (`InProcessRuntime`)
-
-The runtime is responsible for executing the agent's tasks and managing the flow of messages within the orchestration.
+- **Semantic Kernel (SK)**: Used to define and orchestrate agent behaviors using three orchestration patterns:
+  - **Sequential Orchestration**
+  - **Hand-off Orchestration**
+  - **Group Chat Orchestration**
+- **Azure OpenAI**: Powers the LLMs behind each agent, with prompt-engineered instructions to constrain their domain knowledge.
+- **Google Flights Search (GFS)**: Accessed via plugin integration for real-time flight data.
 
 ---
 
-### 1.2 Orchestration Patterns
+## 👥 Business Process and Actors
 
-The script demonstrates two main orchestration patterns:
+> **Note:** The business process for Alvianda Travel can also be represented using BPMN (Business Process Model and Notation), a standard for modeling business workflows. BPMN diagrams provide a clear, visual way to describe the sequence of activities, decision points, and interactions between users and agents in the system. This approach helps both technical and business stakeholders understand and optimize the end-to-end travel planning process.
 
-#### 1.2.1 Sequential Orchestration
-
-- **Purpose**: To process a task by passing it through a sequence of agents. Each agent in the sequence performs a specific step.
-- **Implementation**: The `SequentialOrchestration` class is used within the `TravelWorkflowAgent`.
-
-#### 1.2.2 Agents involved (`get_sequential_agents`)
-- **TravelAgent**: Provides general travel advice.
-- **SummarizerAgent**: Summarizes the output of the previous agent.
-- **WeatherAgent**: Provides weather information.
-
-#### 1.2.3 Flow
-A task given to the `TravelWorkflowAgent` is first processed by the `TravelAgent`, then its output is passed to the `SummarizerAgent`, and finally to the `WeatherAgent`. The final response is the combined result of this sequence.
+<img width="1269" height="737" alt="Image" src="https://github.com/user-attachments/assets/752fb115-9b2c-4e03-a5e1-40e962447392" />
 
 ---
 
-### 1.3 Handoff Orchestration
+## 🧱 System Architecture Overview
 
-- **Purpose**: To route a user query to the appropriate agent based on the user's intent. If an agent cannot handle the request or determines another agent is more suitable, it can "handoff" the conversation to that agent.
-- **Implementation**: The `HandoffOrchestration` class is used in the `run_handoff_orchestration` function.
+### 🔹 Platform Stack
 
-#### 1.3.1 Agents involved (`get_handoff_agents`)
-- **SupportAgent**: Acts as the initial point of contact and a fallback agent.
-- **TriageAgent**: Analyzes user intent and routes the query.
-- **TravelWorkflowAgent**: Handles travel-related queries (this agent itself uses Sequential Orchestration internally).
-- **SportAgent**: Handles sport-related queries.
-
-#### 1.3.2 Handoffs (`OrchestrationHandoffs`)
-This defines the allowed transitions between agents. For example, the `SupportAgent` can handoff to the `TriageAgent`, `TravelWorkflowAgent`, or `SportAgent`.
-
-#### 1.3.3 Flow
-The orchestration starts with the `SupportAgent`. Based on the initial task or subsequent user input, the `SupportAgent` might handoff to the `TriageAgent` to determine the user's intent. The `TriageAgent` then hands off the query to the appropriate specialized agent (`TravelWorkflowAgent` or `SportAgent`). If none of the specialized agents can handle the request, they can handoff back to the `SupportAgent` with an explanation.
+- **LLM Provider**: Azure OpenAI (e.g., GPT-4)
+- **Agent Framework**: Semantic Kernel (SK)
+- **Plugin Integration**: REST-based plugin for Google Flights Search (GFS)
+- **Hosting**: Azure Functions / Azure App Service
+- **State Management**: Stateless agents with optional session memory via Azure Cosmos DB or Redis (future enhancement)
 
 ---
 
-### 1.4 Observer Functions
+## 🧩 Agent Architecture
 
-- **`agent_response_callback`**: This function is used to observe and print the messages generated by the agents during the orchestration. It's helpful for debugging and understanding the flow.
-- **`human_response_function`**: This function (commented out in `run_handoff_orchestration`) would be used to get input from the human user if an agent requires it.
+<img width="1274" height="737" alt="Image" src="https://github.com/user-attachments/assets/9809cd23-5a9e-47b4-842d-fb666f957e78" />
+
+### 1. TripAdvisor Agent (User-Facing)
+
+- **Role**: Entry point for user queries about destinations, events, and trip planning.
+- **Function**: Acts as a triage agent, extracting user intent and initiating orchestration flows.
+- **Orchestration**:
+  - Hand-off Orchestration to TravelInfoOps proxy agent.
+  - Group Chat Orchestration for follow-up queries involving event specialists.
+- **Constraints**: Cannot answer directly using general LLM knowledge; must delegate.
+- **Prompt Template**:
+  - Extracts `intent`, `destination`, `date_range`, `query_type` from user input.
 
 ---
 
-### 1.4.1 Overall Architecture
+### 2. TravelInfoOps Agent (Internal Proxy)
 
-The script establishes a layered architecture:
+- **Role**: Orchestrator for destination-related information.
+- **Function**: Executes Sequential Orchestration of domain-specific agents:
+  1. TravelSpecialist
+  2. WeatherSpecialist
+  3. SportSpecialist
+  4. EntertainmentSpecialist
+  5. TripSynopsisSpecialist
+- **Prompt Template**: "You are a travel orchestrator. Call each agent in sequence and compile their outputs."
 
-- **Base Layer**: Individual `ChatCompletionAgent` instances with specific roles and instructions.
-- **Mid Layer**: Orchestration patterns (`SequentialOrchestration` and `HandoffOrchestration`) that define how agents interact and collaborate to fulfill a task.
-- **Top Layer**: The `run_handoff_orchestration` function that sets up and executes the main handoff orchestration, initiating the multi-agent workflow.
+---
 
-This design allows for modularity and reusability of agents. Complex tasks are broken down and handled by specialized agents, and orchestration patterns manage the flow of information and collaboration between them. The Handoff Orchestration acts as a high-level router, directing queries to the appropriate specialized workflow (like the Sequential Orchestration within the `TravelWorkflowAgent`).
+### 3. TravelSpecialist / SportSpecialist / EntertainmentSpecialist
 
-#### 1.4.2 Component Diagram
+- **Type**: Internal domain experts
+- **Prompt Constraints**:
+  - Scoped to a single domain (travel, sports, entertainment)
+  - Prompts include strict instructions: “Only respond with information relevant to [destination] within the next 3 months.”
+- **LLM Usage**: No plugins; relies on LLM general knowledge filtered by prompt
 
-Here is a Mermaid diagram that visualizes the agent orchestration and handoff logic in `agentic_embed_orch.py`:
+---
+
+### 4. TripSynopsisSpecialist Agent
+
+- **Type**: Internal summarizer
+- **Prompt Template**:
+  - "You are a travel summary generator. Create a concise, engaging summary from the following inputs: [travel], [sports], [entertainment]."
+- **Output**: Markdown or plain text summary for user display
+
+---
+
+### 5. FlightSpecialist Agent (User-Facing)
+
+- **Role**: Provides flight options to the user’s destination.
+- **Function**:
+  - Extracts destination country using LLM
+  - Maps to GFS-compatible parameters (e.g., IATA codes, date ranges)
+  - Calls GFS plugin and returns structured JSON
+- **Plugin Interface**:
+  - REST API wrapper with authentication
+  - Input: `{ origin, destination, date_range }`
+  - Output: JSON array of flight options with deep links
+- **Prompt Template**:
+  - "You are a flight search expert. Use the plugin to find flights to [destination]. Return results in JSON format."
+
+---
+
+## 🔄 Orchestration Patterns
+
+### 🔁 Sequential Orchestration
+
+- **Used by**: TravelInfoOps
+- **Purpose**: Linear execution of agents with dependent outputs
+- **Flow**: TravelSpecialist → SportSpecialist → EntertainmentSpecialist → TripSynopsisSpecialist
+
+### 🔀 Hand-off Orchestration
+
+- **Used by**: TripAdvisor
+- **Purpose**: Delegates task to a specialized agent based on intent
+- **Examples**:
+  - To TravelInfoOps for destination info
+  - To FlightSpecialist for flight search
+
+### 👥 Group Chat Orchestration
+
+- **Used by**: TripAdvisor in follow-up queries
+- **Purpose**: Parallel engagement of multiple agents
+- **Example**: Simultaneous queries to SportSpecialist and EntertainmentSpecialist for event updates
+
+---
+
+## 📦 Plugin Integration: Google Flights Search (GFS)
+
+- **Plugin Wrapper**: Implemented as a Semantic Kernel plugin
+- **Security**: API key stored in Azure Key Vault
+- **Mapping Logic**:
+  - LLM extracts country → maps to IATA airport codes
+  - Constructs GFS query parameters
+- **Response Handling**:
+  - JSON parsing and formatting for user display
+  - Includes flight times, prices, and booking links
+
+---
+
+## 🧩 Agent Orchestrations
 
 ```mermaid
-flowchart TD
-    subgraph HandoffOrchestration
-        SupportAgent["SupportAgent"]
-        TriageAgent["TriageAgent"]
-        TravelWorkflowAgent["TravelWorkflowAgent"]
-        SportAgent["SportAgent"]
-    end
-
-    subgraph TravelWorkflowAgent_Orchestration
-        TravelAgent["TravelAgent"]
-        SummarizerAgent["SummarizerAgent"]
-        WeatherAgent["WeatherAgent"]
-    end
-
-    SupportAgent -- "Routes to" --> TriageAgent
-    SupportAgent -- "Routes to" --> TravelWorkflowAgent
-    SupportAgent -- "Routes to" --> SportAgent
-
-    TriageAgent -- "Travel Query" --> TravelWorkflowAgent
-    TriageAgent -- "Sport Query" --> SportAgent
-    TriageAgent -- "Other Query" --> SupportAgent
-
-    TravelWorkflowAgent -- "Non-travel Query" --> SupportAgent
-    SportAgent -- "Non-sport Query" --> SupportAgent
-
-    TravelWorkflowAgent --> TravelWorkflowAgent_Orchestration
-    TravelWorkflowAgent_Orchestration --> TravelAgent -- "Invokes Next" --> SummarizerAgent
-    TravelWorkflowAgent_Orchestration --> SummarizerAgent -- "Invokes Next" --> WeatherAgent
-    TravelWorkflowAgent_Orchestration --> WeatherAgent -- "Hands-off Control" --> SupportAgent
+graph TD
+    User -->|Query| TripAdvisor
+    TripAdvisor -->|Hand-off| TravelInfoOps
+    TravelInfoOps --> |Sequential| TravelSpecialist
+    TravelInfoOps --> |Sequential| SportSpecialist
+    TravelInfoOps --> |Sequential| EntertainmentSpecialist
+    TravelInfoOps --> |Sequential| TripSynopsisSpecialist
+    TripSynopsisSpecialist --> |Hand-off| TripAdvisor
+    TripAdvisor -->|Hand-off| FlightSpecialist
+    FlightSpecialist -->|Plugin Call| GFS
+    TripAdvisor -->|Group Chat| SportSpecialist
+    TripAdvisor -->|Group Chat| EntertainmentSpecialist
 ```
-
-#### 1.4.3 Diagram Explanation
-- The main orchestration (`HandoffOrchestration`) is a *Semantic Kernel handoff orchestration* that manages four agents: `SupportAgent`, `TriageAgent`, `TravelWorkflowAgent`, and `SportAgent`.
-- `SupportAgent` can route queries to `TriageAgent`, `TravelWorkflowAgent`, or `SportAgent`.
-- `TriageAgent` classifies user intent and routes to the appropriate agent or back to `SupportAgent` for unsupported queries.
-- `TravelWorkflowAgent` is a *Semantic Kernel sequential orchestration* that internally runs three agents: `TravelAgent`, `SummarizerAgent`, and `WeatherAgent`.
-- Both `TravelWorkflowAgent` and `SportAgent` can hand off to `SupportAgent` if the query is outside their domain.
 
 ---
 
-## 2. Threat Model for Multi-Agent Embedded Orchestration
+## 🧪 Testing & Monitoring
 
-The following threat model has been generated from `agentic_embed_orch.py` Python script, by using Github Copilot.
-
-### 2.1 **Architecture Overview**
-- The system orchestrates multiple AI agents (SupportAgent, TriageAgent, TravelWorkflowAgent, SportAgent) using Azure OpenAI services.
-- User queries are routed through a handoff orchestration, with some agents (like TravelWorkflowAgent) running their own internal sequential orchestration (TravelAgent, SummarizerAgent, WeatherAgent).
-- The system relies on environment variables for Azure OpenAI credentials and endpoints.
-- The agents and orchestrations are all implemented in a single script <span style="color:orange">agentic_embed_orch.py</span>
-
-### 2.2 **Assets**
-- Azure OpenAI API keys and endpoints
-- User input data (potentially sensitive)
-- Agent-generated responses (may contain sensitive or confidential information)
-- Orchestration logic and agent instructions
-
-### 2.3 **Potential Threats**
-
-#### a. **Credential Exposure**
-- **Threat:** Azure OpenAI API keys and endpoints are loaded from environment variables. If these are leaked (e.g., via logs, error messages, or misconfiguration), attackers could abuse the API.
-- **Mitigation:** Ensure environment variables are never logged or exposed. Use secure storage for secrets (e.g., Azure Key Vault).
-
-#### b. **Input Injection**
-- **Threat:** User input is passed directly to agents and may be used in prompts. Malicious input could manipulate agent behavior or cause prompt injection attacks.
-- **Mitigation:** Sanitize and validate user input. Use prompt engineering best practices to minimize prompt injection risk.
-
-#### c. **Denial of Service (DoS)**
-- **Threat:** Attackers could flood the system with requests, exhausting API quotas or causing service degradation.
-- **Mitigation:** Implement rate limiting, input validation, and monitoring for abnormal usage patterns.
-
-#### d. **Data Leakage**
-- **Threat:** Agents may inadvertently return sensitive information if not properly scoped or if prompt context is not managed securely.
-- **Mitigation:** Carefully design agent instructions to avoid leaking internal or sensitive data. Monitor outputs for compliance.
-
-#### e. **Unauthorized Access**
-- **Threat:** If the orchestration is exposed as a public service, unauthorized users could access the system and its capabilities.
-- **Mitigation:** Implement authentication and authorization controls for any public endpoints.
-
-#### f. **Agent Misrouting**
-- **Threat:** Logic errors in handoff or orchestration could route sensitive queries to the wrong agent, leading to inappropriate responses or data exposure.
-- **Mitigation:** Test routing logic thoroughly and add logging/monitoring for unexpected agent handoffs.
-
-#### g. **Service Misconfiguration**
-- **Threat:** Incorrect configuration of Azure OpenAI services (e.g., wrong endpoint, insufficient permissions) could lead to service outages or security gaps.
-- **Mitigation:** Validate configuration at startup and handle errors gracefully.
-
-#### h. **Logging Sensitive Data**
-- **Threat:** The system prints agent messages and responses, which may include sensitive user data.
-- **Mitigation:** Avoid logging sensitive information or redact logs as needed.
-
-### 2.4 **Trust Boundaries**
-- Between user input and agent orchestration logic
-- Between orchestration logic and Azure OpenAI service
-- Between internal agent orchestration (e.g., TravelWorkflowAgent) and main orchestration
-
-### 2.5 **Recommendations**
-- Use secure secret management for API keys.
-- Sanitize and validate all user inputs.
-- Limit and monitor API usage.
-- Implement authentication for any user-facing endpoints.
-- Regularly review and update agent instructions to prevent data leakage.
-- Avoid logging sensitive data.
-- Monitor for abnormal behavior and errors.
+- **Unit Testing**: Each agent tested with mock prompts and expected outputs
+- **Integration Testing**: Orchestration flows validated end-to-end
+- **Monitoring**:
+  - Azure Application Insights for telemetry
+  - Logging of orchestration paths and plugin calls
 
 ---
 
-### 2.6 **Threat Model Diagram**
+## 📈 Scalability & Extensibility
 
-```mermaid
-flowchart TD
-    User[User]
-    UI[User Interface / API Endpoint]
-    Orchestration[HandoffOrchestration]
-    SupportAgent[SupportAgent]
-    TriageAgent[TriageAgent]
-    TravelWorkflowAgent[TravelWorkflowAgent]
-    SportAgent[SportAgent]
-    AzureOpenAI[Azure OpenAI Service]
-    Secrets[Environment Variables / Secrets Store]
-
-    subgraph TravelWorkflow
-        TravelAgent[TravelAgent]
-        SummarizerAgent[SummarizerAgent]
-        WeatherAgent[WeatherAgent]
-    end
-
-    User -- Input (T1: Input Injection, T3: DoS) --> UI
-    UI -- Query --> Orchestration
-    Orchestration -- Route --> SupportAgent
-    Orchestration -- Route --> TriageAgent
-    Orchestration -- Route --> TravelWorkflowAgent
-    Orchestration -- Route --> SportAgent
-
-    TravelWorkflowAgent -- Sequential --> TravelAgent
-    TravelWorkflowAgent -- Sequential --> SummarizerAgent
-    TravelWorkflowAgent -- Sequential --> WeatherAgent
-
-    SupportAgent -- API Call (T2: Data Leakage) --> AzureOpenAI
-    TriageAgent -- API Call (T2: Data Leakage) --> AzureOpenAI
-    TravelAgent -- API Call (T2: Data Leakage) --> AzureOpenAI
-    SummarizerAgent -- API Call (T2: Data Leakage) --> AzureOpenAI
-    WeatherAgent -- API Call (T2: Data Leakage) --> AzureOpenAI
-    SportAgent -- API Call (T2: Data Leakage) --> AzureOpenAI
-
-    Orchestration -- Reads (T4: Credential Exposure) --> Secrets
-
-    AzureOpenAI -- Response --> Orchestration
-    Orchestration -- Output (T5: Logging Sensitive Data) --> UI
-    UI -- Output --> User
-
-    %% Threats
-    %% classDef threat fill=#ffcccc,stroke=#d33,stroke-width=2px;
-    T1[Input Injection]:::threat
-    T2[Data Leakage]:::threat
-    T3[Denial of Service]:::threat
-    T4[Credential Exposure]:::threat
-    T5[Logging Sensitive Data]:::threat
-```
+- **Modular Agent Design**: New agents (e.g., HotelSpecialist, VisaAdvisor) can be added with minimal changes
+- **Multi-turn Memory**: Future enhancement using SK memory store
+- **Personalization**: User profiles and preferences stored in Cosmos DB
