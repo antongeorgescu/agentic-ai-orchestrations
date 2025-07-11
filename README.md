@@ -23,7 +23,7 @@
 
 > **Note:** The business process for Alvianda Travel can also be represented using BPMN (Business Process Model and Notation), a standard for modeling business workflows. BPMN diagrams provide a clear, visual way to describe the sequence of activities, decision points, and interactions between users and agents in the system. This approach helps both technical and business stakeholders understand and optimize the end-to-end travel planning process.
 
-<img width="1269" height="737" alt="Image" src="https://github.com/user-attachments/assets/752fb115-9b2c-4e03-a5e1-40e962447392" />
+<img width="838" height="791" alt="Image" src="https://github.com/user-attachments/assets/5f31b177-1724-47e9-bcd0-ed122b73f0dd" />
 
 ---
 
@@ -41,7 +41,7 @@
 
 ## 🧩 Agent Architecture
 
-<img width="1274" height="737" alt="Image" src="https://github.com/user-attachments/assets/9809cd23-5a9e-47b4-842d-fb666f957e78" />
+<img width="1269" height="737" alt="Image" src="https://github.com/user-attachments/assets/752fb115-9b2c-4e03-a5e1-40e962447392" />
 
 ### 1. TripAdvisor Agent (User-Facing)
 
