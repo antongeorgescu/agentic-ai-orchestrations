@@ -3,7 +3,7 @@ import os, sys
 from typing import Annotated
 
 from semantic_kernel.agents import Agent, ChatCompletionAgent, SequentialOrchestration, HandoffOrchestration, OrchestrationHandoffs, GroupChatOrchestration
-from semantic_kernel.agents.orchestration.group_chat import BooleanResult, RoundRobinGroupChatManager
+from semantic_kernel.agents.orchestration.group_chat import BooleanResult, RoundRobinGroupChatManager,AIManager
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion # or OpenAIChatCompletion
 from semantic_kernel.agents.runtime import InProcessRuntime
 from semantic_kernel.contents import ChatHistory
@@ -12,7 +12,7 @@ from semantic_kernel.contents import ChatMessageContent, AuthorRole, FunctionCal
 from semantic_kernel import Kernel
 from semantic_kernel.functions import kernel_function # for custom agent's skill
 
-
+# Ensure compatibility with Python 3.12+ for the override decorator
 if sys.version_info >= (3, 12):
     from typing import override  # pragma: no cover
 else:
