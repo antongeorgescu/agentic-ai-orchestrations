@@ -158,22 +158,6 @@ graph TD
     TripAdvisor -->|Group Chat| EntertainmentSpecialist
 ```
 
-```mermaid
-flowchart TD
-    A[User] -->|Query| B["Intent Classification<br/>(LLM)"]
-    B -- Weather --> C["Weather Agent<br/>(LLM)"]
-    B -- Travel --> D["Travel Agent<br/>(LLM)"]
-    B -- Flights --> E["Flights Agent<br/>(LLM + Tool)"]
-    E --> F{"Extract Flight Details<br/>(LLM)"}
-    F -- Missing Info --> G[Prompt User for<br/>Missing Details]
-    F -- All Info Present --> H[Call get_flight_info<br/>Tool]
-    C --> I[Weather Response]
-    D --> J[Travel Response]
-    H --> K[Flight Info Response]
-    G --> L[Ask User for More Info]
-    I & J & K & L --> M[Show Agent Response<br/>with Agent Name]
-```
-
 ---
 
 ## 🧪 Testing & Monitoring
